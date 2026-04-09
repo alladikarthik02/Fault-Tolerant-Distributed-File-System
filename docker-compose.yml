@@ -1,0 +1,71 @@
+services:
+  node-1:
+    build:
+      context: ./storage-node
+    container_name: dfs-node-1
+    environment:
+      STORAGENODE_ID: node-1
+      SERVER_PORT: 9001
+    ports:
+      - "9001:9001"
+    volumes:
+      - node1-data:/app/data/shards
+    networks:
+      - dfs-net
+
+  node-2:
+    build:
+      context: ./storage-node
+    container_name: dfs-node-2
+    environment:
+      STORAGENODE_ID: node-2
+      SERVER_PORT: 9001
+    ports:
+      - "9002:9001"
+    volumes:
+      - node2-data:/app/data/shards
+    networks:
+      - dfs-net
+
+  node-3:
+    build:
+      context: ./storage-node
+    container_name: dfs-node-3
+    environment:
+      STORAGENODE_ID: node-3
+      SERVER_PORT: 9001
+    ports:
+      - "9003:9001"
+    volumes:
+      - node3-data:/app/data/shards
+    networks:
+      - dfs-net
+
+  controller:
+    build:
+      context: .
+    container_name: dfs-controller
+    environment:
+      SPRING_PROFILES_ACTIVE: cluster
+      DFS_NODES: http://node-1:9001,http://node-2:9001,http://node-3:9001
+      DFS_METADATA_JOURNAL_PATH: /app/data/metadata/journal.log
+    ports:
+      - "8080:8080"
+    volumes:
+      - controller-data:/app/data
+    depends_on:
+      - node-1
+      - node-2
+      - node-3
+    networks:
+      - dfs-net
+
+volumes:
+  node1-data:
+  node2-data:
+  node3-data:
+  controller-data:
+
+networks:
+  dfs-net:
+    driver: bridge
